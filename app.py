@@ -1,6 +1,8 @@
 import os
 import io
 import tempfile
+import subprocess
+import shutil
 from datetime import datetime
 from typing import Optional, Tuple
 
@@ -186,6 +188,38 @@ def extract_text_generic(file_path: str, filename: str) -> Tuple[str, Optional[s
         # Fallback to bytes decode
         with open(file_path, "rb") as f:
             return detect_encoding_and_read(f.read()), "Fallback byte decode (EPUB)"
+
+    # MOBI / AZW3 via Calibre (ebook-convert)
+    if ext in {".mobi", ".azw3"}:
+        # Try to find ebook-convert executable
+        exe = shutil.which("ebook-convert")
+        if exe:
+            try:
+                # Convert to TXT into a temp file
+                tmp_out = os.path.join(tempfile.mkdtemp(prefix="calibre_"), "out.txt")
+                # Basic command; Calibre handles most formats well
+                cmd = [exe, file_path, tmp_out, "--txt-output-formatting", "plain"]
+                subprocess.run(cmd, check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, timeout=120)
+                with open(tmp_out, "rb") as f:
+                    return detect_encoding_and_read(f.read()), "Calibre ebook-convert (TXT)"
+            except Exception:
+                # Fallback: try converting to HTML and parse text
+                try:
+                    tmp_out_html = os.path.join(tempfile.mkdtemp(prefix="calibre_"), "out.html")
+                    cmd = [exe, file_path, tmp_out_html]
+                    subprocess.run(cmd, check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, timeout=120)
+                    if BeautifulSoup:
+                        with open(tmp_out_html, "rb") as f:
+                            soup = BeautifulSoup(f.read(), "html.parser")
+                        return soup.get_text(separator="\n"), "Calibre ebook-convert (HTML + BeautifulSoup)"
+                    else:
+                        with open(tmp_out_html, "rb") as f:
+                            return detect_encoding_and_read(f.read()), "Calibre ebook-convert (HTML fallback decode)"
+                except Exception:
+                    pass
+        # If Calibre not available or conversion failed, fallback
+        with open(file_path, "rb") as f:
+            return detect_encoding_and_read(f.read()), "Fallback byte decode (MOBI/AZW3)"
 
     # Images - OCR
     if ext in {".png", ".jpg", ".jpeg", ".tiff", ".bmp", ".gif"}:

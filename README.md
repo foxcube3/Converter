@@ -10,6 +10,7 @@ Supported formats (best-effort):
 - XLSX (openpyxl)
 - HTML (BeautifulSoup)
 - EPUB (ebooklib + BeautifulSoup)
+- MOBI/AZW3 (via Calibre's ebook-convert, if installed)
 - RTF (striprtf)
 - Images: PNG/JPG/TIFF/BMP/GIF via OCR (pytesseract)
 - Audio/Video: MP3/WAV/M4A/MP4/WEBM/OGG via Whisper (optional)
@@ -36,6 +37,11 @@ pip install -r requirements.txt
   - macOS: `brew install ffmpeg`
   - Ubuntu/Debian: `sudo apt-get install ffmpeg`
   - Windows: https://ffmpeg.org/download.html
+- Calibre (for MOBI/AZW3 via ebook-convert)
+  - macOS: `brew install --cask calibre` or download from https://calibre-ebook.com/download
+  - Ubuntu/Debian: `sudo apt-get install calibre` (or use official binary installer)
+  - Windows: download from https://calibre-ebook.com/download
+  - After install, ensure `ebook-convert` is in your PATH
 
 3) Run the app:
 ```
