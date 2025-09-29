@@ -37,11 +37,12 @@ pip install -r requirements.txt
   - macOS: `brew install ffmpeg`
   - Ubuntu/Debian: `sudo apt-get install ffmpeg`
   - Windows: https://ffmpeg.org/download.html
-- Calibre (for MOBI/AZW3 via ebook-convert)
+- Calibre (for MOBI/AZW3/FB2 via ebook-convert)
   - macOS: `brew install --cask calibre` or download from https://calibre-ebook.com/download
   - Ubuntu/Debian: `sudo apt-get install calibre` (or use official binary installer)
   - Windows: download from https://calibre-ebook.com/download
   - After install, ensure `ebook-convert` is in your PATH
+  - Server-side setting: set `PREFER_CALIBRE_TXT=true` (default) to prefer TXT conversion; set to `false` to prefer HTML parsing fallback
 
 3) Run the app:
 ```

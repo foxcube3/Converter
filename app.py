@@ -82,6 +82,61 @@ def detect_encoding_and_read(bytes_data: bytes) -> str:
         return bytes_data.decode("utf-8", errors="replace")
 
 
+def get_env_bool(name: str, default: bool) -> bool:
+    """Parse boolean-like environment variable."""
+    val = os.environ.get(name)
+    if val is None:
+        return default
+    return str(val).strip().lower() in {"1", "true", "yes", "on"}
+
+
+def calibre_available() -> bool:
+    """Return True if Calibre's ebook-convert is in PATH."""
+    return shutil.which("ebook-convert") is not None
+
+
+def calibre_convert_to_text(in_path: str, prefer_txt: bool = True) -> Optional[Tuple[str, str]]:
+    """
+    Use Calibre's ebook-convert to convert an ebook file to text.
+    prefer_txt controls whether we first try TXT then fallback to HTML, or vice versa.
+    Returns (text, method) if successful, otherwise None.
+    """
+    exe = shutil.which("ebook-convert")
+    if not exe:
+        return None
+
+    def try_txt() -> Optional[Tuple[str, str]]:
+        try:
+            tmp_out = os.path.join(tempfile.mkdtemp(prefix="calibre_"), "out.txt")
+            cmd = [exe, in_path, tmp_out, "--txt-output-formatting", "plain"]
+            subprocess.run(cmd, check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, timeout=180)
+            with open(tmp_out, "rb") as f:
+                return detect_encoding_and_read(f.read()), "Calibre ebook-convert (TXT)"
+        except Exception:
+            return None
+
+    def try_html() -> Optional[Tuple[str, str]]:
+        try:
+            tmp_out_html = os.path.join(tempfile.mkdtemp(prefix="calibre_"), "out.html")
+            cmd = [exe, in_path, tmp_out_html]
+            subprocess.run(cmd, check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, timeout=180)
+            with open(tmp_out_html, "rb") as f:
+                raw = f.read()
+            if BeautifulSoup:
+                soup = BeautifulSoup(raw, "html.parser")
+                return soup.get_text(separator="\n"), "Calibre ebook-convert (HTML + BeautifulSoup)"
+            return detect_encoding_and_read(raw), "Calibre ebook-convert (HTML fallback decode)"
+        except Exception:
+            return None
+
+    order = (try_txt, try_html) if prefer_txt else (try_html, try_txt)
+    for fn in order:
+        res = fn()
+        if res:
+            return res
+    return None
+
+
 def extract_text_generic(file_path: str, filename: str) -> Tuple[str, Optional[str]]:
     """
     Extract text from the given file. Returns (text, method_description).
@@ -189,37 +244,15 @@ def extract_text_generic(file_path: str, filename: str) -> Tuple[str, Optional[s
         with open(file_path, "rb") as f:
             return detect_encoding_and_read(f.read()), "Fallback byte decode (EPUB)"
 
-    # MOBI / AZW3 via Calibre (ebook-convert)
-    if ext in {".mobi", ".azw3"}:
-        # Try to find ebook-convert executable
-        exe = shutil.which("ebook-convert")
-        if exe:
-            try:
-                # Convert to TXT into a temp file
-                tmp_out = os.path.join(tempfile.mkdtemp(prefix="calibre_"), "out.txt")
-                # Basic command; Calibre handles most formats well
-                cmd = [exe, file_path, tmp_out, "--txt-output-formatting", "plain"]
-                subprocess.run(cmd, check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, timeout=120)
-                with open(tmp_out, "rb") as f:
-                    return detect_encoding_and_read(f.read()), "Calibre ebook-convert (TXT)"
-            except Exception:
-                # Fallback: try converting to HTML and parse text
-                try:
-                    tmp_out_html = os.path.join(tempfile.mkdtemp(prefix="calibre_"), "out.html")
-                    cmd = [exe, file_path, tmp_out_html]
-                    subprocess.run(cmd, check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, timeout=120)
-                    if BeautifulSoup:
-                        with open(tmp_out_html, "rb") as f:
-                            soup = BeautifulSoup(f.read(), "html.parser")
-                        return soup.get_text(separator="\n"), "Calibre ebook-convert (HTML + BeautifulSoup)"
-                    else:
-                        with open(tmp_out_html, "rb") as f:
-                            return detect_encoding_and_read(f.read()), "Calibre ebook-convert (HTML fallback decode)"
-                except Exception:
-                    pass
+    # MOBI / AZW3 / FB2 via Calibre (ebook-convert)
+    if ext in {".mobi", ".azw3", ".fb2"}:
+        prefer_txt = get_env_bool("PREFER_CALIBRE_TXT", True)
+        res = calibre_convert_to_text(file_path, prefer_txt=prefer_txt)
+        if res:
+            return res[0], res[1]
         # If Calibre not available or conversion failed, fallback
         with open(file_path, "rb") as f:
-            return detect_encoding_and_read(f.read()), "Fallback byte decode (MOBI/AZW3)"
+            return detect_encoding_and_read(f.read()), f"Fallback byte decode ({ext.upper().lstrip('.')})"
 
     # Images - OCR
     if ext in {".png", ".jpg", ".jpeg", ".tiff", ".bmp", ".gif"}:
