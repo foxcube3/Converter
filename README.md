@@ -9,6 +9,7 @@ Supported formats (best-effort):
 - PPTX (python-pptx)
 - XLSX (openpyxl)
 - HTML (BeautifulSoup)
+- EPUB (ebooklib + BeautifulSoup)
 - RTF (striprtf)
 - Images: PNG/JPG/TIFF/BMP/GIF via OCR (pytesseract)
 - Audio/Video: MP3/WAV/M4A/MP4/WEBM/OGG via Whisper (optional)

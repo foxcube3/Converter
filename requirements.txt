@@ -9,3 +9,4 @@ Pillow==10.4.0
 pytesseract==0.3.10
 chardet==5.2.0
 openai-whisper==20231117
+ebooklib==0.18

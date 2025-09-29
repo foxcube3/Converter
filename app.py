@@ -36,6 +36,13 @@ except Exception:
     BeautifulSoup = None
 
 try:
+    import ebooklib
+    from ebooklib import epub
+except Exception:
+    ebooklib = None
+    epub = None
+
+try:
     from striprtf.striprtf import rtf_to_text
 except Exception:
     rtf_to_text = None
@@ -158,6 +165,27 @@ def extract_text_generic(file_path: str, filename: str) -> Tuple[str, Optional[s
         except Exception:
             with open(file_path, "rb") as f:
                 return detect_encoding_and_read(f.read()), "Fallback byte decode (HTML)"
+
+    # EPUB
+    if ext == ".epub":
+        if epub and BeautifulSoup:
+            try:
+                book = epub.read_epub(file_path)
+                chunks = []
+                for item in book.get_items():
+                    # Only document items contain XHTML content
+                    if hasattr(item, "get_type") and item.get_type() == (getattr(ebooklib, "ITEM_DOCUMENT", None)):
+                        content = item.get_content()
+                        soup = BeautifulSoup(content, "html.parser")
+                        text = soup.get_text(separator="\n")
+                        if text.strip():
+                            chunks.append(text)
+                return "\n\n".join(chunks), "ebooklib + BeautifulSoup"
+            except Exception:
+                pass
+        # Fallback to bytes decode
+        with open(file_path, "rb") as f:
+            return detect_encoding_and_read(f.read()), "Fallback byte decode (EPUB)"
 
     # Images - OCR
     if ext in {".png", ".jpg", ".jpeg", ".tiff", ".bmp", ".gif"}:
