@@ -1,0 +1,96 @@
+:root {
+  --bg: #0e0f12;
+  --panel: #16181d;
+  --border: #2a2f3a;
+  --text: #e9eef7;
+  --muted: #9aa7b7;
+  --accent: #5b9bff;
+  --accent2: #8b5bff;
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+  height: 100%;
+  margin: 0;
+  font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+  background: radial-gradient(1200px 600px at 10% 10%, #0e1525 0%, #0b0e14 50%, #090b10 100%);
+  color: var(--text);
+}
+
+.container {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 32px 16px;
+}
+
+header {
+  text-align: center;
+  margin-bottom: 24px;
+}
+
+h1 {
+  margin: 0 0 8px;
+  font-size: 28px;
+  letter-spacing: 0.3px;
+}
+
+header p {
+  margin: 0;
+  color: var(--muted);
+}
+
+.upload-form {
+  margin: 24px auto;
+  padding: 16px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: linear-gradient(180deg, rgba(22, 24, 29, 0.85), rgba(22,24,29,0.65));
+  backdrop-filter: blur(6px);
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  justify-content: center;
+}
+
+input[type="file"] {
+  color: var(--text);
+  max-width: 100%;
+}
+
+button {
+  background: linear-gradient(135deg, var(--accent), var(--accent2));
+  border: none;
+  padding: 10px 16px;
+  border-radius: 10px;
+  color: white;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 10px 20px rgba(91, 155, 255, 0.25);
+  transition: transform 120ms ease, box-shadow 120ms ease, filter 120ms ease;
+}
+
+button:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 14px 26px rgba(91, 155, 255, 0.35);
+  filter: brightness(1.05);
+}
+
+.notes {
+  margin-top: 18px;
+  padding: 16px;
+  border: 1px dashed var(--border);
+  border-radius: 12px;
+  background: rgba(22,24,29,0.5);
+}
+
+.notes h2 {
+  margin: 0 0 8px;
+  font-size: 18px;
+}
+
+footer {
+  margin-top: 24px;
+  text-align: center;
+  color: var(--muted);
+}
