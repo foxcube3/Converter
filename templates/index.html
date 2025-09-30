@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Universal File to Text Converter</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/static/style.css" />
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>Universal File to Text Converter</h1>
+      <p>Upload any file. Get plain text back. Supports PDF, DOCX, PPTX, XLSX, HTML, RTF, images (OCR), and audio/video (Whisper) when available.</p>
+    </header>
+
+    <main>
+      <form class="upload-form" method="post" enctype="multipart/form-data">
+        <input type="file" name="file" id="fileInput" required />
+        <button type="submit">Convert to Text</button>
+      </form>
+
+      <section class="notes">
+        <h2>Notes</h2>
+        <ul>
+          <li>For best OCR results on images, install Tesseract on your system.</li>
+          <li>Audio/video transcription uses Whisper and may download models on first run.</li>
+          <li>We return a downloadable .txt file with extracted text.</li>
+        </ul>
+      </section>
+    </main>
+
+    <footer>
+      <small>Built with Flask. This is a best-effort extractor using pure-Python libraries where possible.</small>
+    </footer>
+  </div>
+</body>
+</html>
